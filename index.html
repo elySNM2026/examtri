@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación Interactiva de Matemática - Triángulos Rectángulos</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // Paleta personalizada en Rojo y Amarillo
+                        mathPrimary: {
+                            50: '#fef2f2', 100: '#fee2e2', 200: '#fecaca', 300: '#fca5a5',
+                            500: '#ef4444', 600: '#dc2626', 700: '#b91c1c', 800: '#991b1b',
+                            900: '#7f1d1d', 950: '#450a0a',
+                        },
+                        mathAccent: {
+                            50: '#fefce8', 100: '#fef9c3', 200: '#fef08a', 300: '#fde047',
+                            400: '#facc15', 500: '#eab308', 600: '#ca8a04',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- MathJax para Ecuaciones Matemáticas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Tone.js para efectos de sonido -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        
+        #custom-notification { transition: opacity 0.3s ease, transform 0.3s ease; transform: translateY(-20px); opacity: 0; pointer-events: none; }
+        #custom-notification.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+        
+        .MathJax { font-size: 1.15em !important; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-mathPrimary-950 via-mathPrimary-800 to-amber-900 min-h-screen text-gray-800 flex items-center justify-center p-3 md:p-6">
+
+    <!-- Notificación Flotante -->
+    <div id="custom-notification" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 bg-mathPrimary-700 text-amber-100 px-6 py-3 rounded-2xl shadow-2xl font-bold flex items-center gap-3 border-2 border-mathAccent-400">
+        <span id="notification-msg">Aviso</span>
+        <button onclick="hideNotification()" class="ml-4 text-mathAccent-300 hover:text-white">✕</button>
+    </div>
+
+    <!-- Contenedor Principal -->
+    <div class="max-w-4xl w-full bg-amber-50/95 backdrop-blur-md rounded-3xl shadow-2xl border-4 border-mathAccent-400/60 overflow-hidden fade-in my-4">
+        
+        <header class="bg-gradient-to-r from-mathPrimary-900 via-mathPrimary-700 to-mathPrimary-900 text-white p-6 text-center shadow-lg border-b-4 border-mathAccent-400">
+            <div class="inline-block bg-mathAccent-400 text-mathPrimary-950 text-xs px-4 py-1 rounded-full font-black uppercase tracking-wider mb-2 shadow">
+                I.E. Santísima Niña María
+            </div>
+            <h1 class="text-2xl md:text-3xl font-black tracking-tight drop-shadow text-white">EVALUACIÓN ESCRITA DE MATEMÁTICA</h1>
+            <p class="text-mathAccent-300 font-bold text-base md:text-lg mt-1 tracking-wide">TRIÁNGULOS RECTÁNGULOS</p>
+        </header>
+
+        <!-- PANTALLA DE REGISTRO -->
+        <div id="screen-register" class="p-6 md:p-10">
+            <div class="max-w-lg mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-md border-2 border-mathPrimary-200">
+                <h2 class="text-2xl font-black text-center mb-1 text-mathPrimary-900">¡Bienvenidas, queridas estudiantes!</h2>
+                <p class="text-center text-sm text-mathPrimary-700 mb-6 font-medium">Selecciona tu grado y sección para comenzar tu evaluación.</p>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs font-bold text-mathPrimary-900 mb-2">GRADO</label>
+                        <select id="sel-grado" onchange="resetListaAlumnas()" class="w-full p-3 border-2 border-mathPrimary-200 rounded-xl font-semibold outline-none bg-mathPrimary-50/50 focus:border-mathPrimary-600">
+                            <option value="">Elegir grado</option>
+                            <option value="1">1.º año</option>
+                            <option value="2">2.º año</option>
+                            <option value="3">3.º año</option>
+                            <option value="4">4.º año</option>
+                            <option value="5">5.º año</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-mathPrimary-900 mb-2">SECCIÓN</label>
+                        <select id="sel-seccion" onchange="resetListaAlumnas()" class="w-full p-3 border-2 border-mathPrimary-200 rounded-xl font-semibold outline-none bg-mathPrimary-50/50 focus:border-mathPrimary-600">
+                            <option value="">Elegir sección</option>
+                            <option value="A">Sección A</option>
+                            <option value="B">Sección B</option>
+                            <option value="C">Sección C</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="cargarEstudiantes()" class="w-full bg-mathPrimary-700 hover:bg-mathPrimary-800 text-white font-extrabold py-3 px-4 rounded-xl shadow-md mb-4 transition border-b-4 border-mathPrimary-950">
+                    🔍 Buscar Mi Nombre
+                </button>
+                <div id="container-nombre" class="hidden fade-in">
+                    <label class="block text-xs font-bold text-mathPrimary-900 mb-2">SELECCIONA TU NOMBRE DE LA LISTA</label>
+                    <select id="sel-nombre" class="w-full p-3 border-2 border-mathPrimary-300 rounded-xl font-semibold mb-6 bg-white focus:border-mathPrimary-600"></select>
+                    <button onclick="iniciarEvaluacion()" class="w-full bg-mathAccent-400 hover:bg-mathAccent-500 text-mathPrimary-950 font-black py-4 px-4 rounded-xl shadow-lg text-lg transition border-b-4 border-amber-600">
+                        🚀 ¡Estoy lista, iniciar evaluación!
+                    </button>
+                </div>
+                <div id="loading-msg" class="hidden text-center text-mathPrimary-800 font-bold mt-4 animate-pulse">⌛ Buscando lista de alumnas...</div>
+            </div>
+            <div class="mt-8 pt-4 border-t border-mathPrimary-200 text-center text-sm font-medium text-mathPrimary-900">
+                Elaborado por: <span class="font-bold text-mathPrimary-800">ELIZABETH M.</span>
+            </div>
+        </div>
+
+        <!-- PANTALLA DE EXAMEN -->
+        <div id="screen-game" class="hidden p-6 md:p-8 fade-in">
+            <div class="flex justify-between items-center mb-6 bg-mathPrimary-100/90 p-4 rounded-2xl border-2 border-mathPrimary-300">
+                <div>
+                    <span class="text-xs font-bold text-mathPrimary-700 uppercase block">Alumna</span>
+                    <span id="user-display-name" class="font-black text-mathPrimary-950 block text-lg">Estudiante</span>
+                </div>
+                <div class="w-1/2 bg-mathPrimary-200 rounded-full h-4 overflow-hidden hidden md:block border border-mathPrimary-300">
+                    <div id="progress-bar" class="bg-gradient-to-r from-mathPrimary-600 to-mathAccent-400 h-full w-0 transition-all duration-300"></div>
+                </div>
+                <div class="font-extrabold text-mathPrimary-900 text-sm bg-white px-3 py-1.5 rounded-xl border-2 border-mathAccent-400 shadow-sm">
+                    Pregunta <span id="current-q-num">1</span> / <span id="total-q-num">0</span>
+                </div>
+            </div>
+
+            <!-- Aquí van las preguntas dinámicas -->
+            <div id="question-card" class="bg-white p-6 md:p-8 rounded-2xl shadow-md border-2 border-mathPrimary-200 mb-6"></div>
+
+            <div class="flex justify-between items-center gap-4">
+                <button id="btn-prev" onclick="navegarPregunta(-1)" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-xl disabled:opacity-30 transition">← Anterior</button>
+                <button id="btn-next" onclick="navegarPregunta(1)" class="bg-mathPrimary-600 hover:bg-mathPrimary-700 text-white font-extrabold py-3 px-8 rounded-xl shadow-md transition border-b-4 border-mathPrimary-900">Siguiente →</button>
+                <button id="btn-finish" onclick="confirmarFinalizacion()" class="hidden bg-mathAccent-400 hover:bg-mathAccent-500 text-mathPrimary-950 font-black py-3 px-8 rounded-xl shadow-lg transition border-b-4 border-amber-600">✅ Finalizar Evaluación</button>
+            </div>
+        </div>
+
+        <!-- PANTALLA DE RESULTADOS -->
+        <div id="screen-results" class="hidden p-6 md:p-10 text-center fade-in">
+            <div class="inline-block bg-mathAccent-200 text-mathPrimary-950 text-xs font-black px-4 py-1 rounded-full mb-2 border border-mathAccent-400">
+                ¡Felicitaciones por completar tu evaluación!
+            </div>
+            <h2 class="text-3xl font-black mb-2 text-mathPrimary-950">Reporte Final</h2>
+            <p id="result-student-info" class="text-sm font-bold text-mathPrimary-800 mb-6"></p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-white border-2 border-mathPrimary-300 rounded-3xl p-6 shadow-md flex flex-col items-center justify-center">
+                    <p class="text-xs font-bold uppercase mb-1 text-gray-500">Logro Alcanzado</p>
+                    <div id="result-letter" class="text-7xl font-black text-mathPrimary-600 my-1">--</div>
+                    <p id="result-level-desc" class="text-sm font-extrabold px-3 py-1 rounded-full bg-mathPrimary-100 text-mathPrimary-900 mt-1">--</p>
+                    <p id="result-points" class="text-2xl font-extrabold text-mathPrimary-950 mt-3">Nota: 0 / 20</p>
+                </div>
+                <div class="bg-white border-2 border-mathPrimary-300 rounded-3xl p-6 shadow-md text-left flex flex-col justify-center">
+                    <div class="text-emerald-700 font-bold mb-3 text-lg">✔ Correctas: <span id="stat-correct">0</span></div>
+                    <div class="text-rose-700 font-bold mb-3 text-lg">❌ Incorrectas: <span id="stat-incorrect">0</span></div>
+                    <div class="text-slate-700 font-bold text-lg">⚪ En Blanco: <span id="stat-blank">0</span></div>
+                </div>
+            </div>
+
+            <!-- Tabla resumen de escala de calificación -->
+            <div class="bg-white/95 border-2 border-mathPrimary-200 rounded-2xl p-4 mb-6 text-xs text-left">
+                <p class="font-extrabold text-mathPrimary-950 uppercase mb-2 text-center">Escala de Calificación Institucional</p>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center font-semibold">
+                    <div class="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
+                        <span class="font-black text-base block">AD (18 – 20)</span>
+                        Logro destacado
+                    </div>
+                    <div class="p-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-900">
+                        <span class="font-black text-base block">A (15 – 17)</span>
+                        Logro esperado / Satisfactorio
+                    </div>
+                    <div class="p-2 rounded-xl bg-amber-50 border border-amber-300 text-amber-900">
+                        <span class="font-black text-base block">B (11 – 14)</span>
+                        En proceso
+                    </div>
+                    <div class="p-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-900">
+                        <span class="font-black text-base block">C (00 – 10)</span>
+                        En inicio / Reprobado
+                    </div>
+                </div>
+            </div>
+
+            <div id="sync-status" class="mb-6 p-4 rounded-xl text-sm font-bold bg-mathAccent-100 border-2 border-mathAccent-400 text-mathPrimary-950">⌛ Registrando tus resultados...</div>
+            <button onclick="location.reload()" class="bg-mathPrimary-800 text-white font-bold py-3 px-8 rounded-xl hover:bg-mathPrimary-900 transition shadow-md">Volver al Inicio</button>
+        </div>
+
+    </div>
+
+    <script>
+        // ENLACE APPS SCRIPT ACTUALIZADO
+        const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxzNWKzJNM-xwqb5nW4nyPg8j-b95aQIQrFK6oTISN9y-vRciRhaPQuyvYFrX5bNhB94g/exec";
+
+        let userIP = "No detectada";
+        fetch('https://api.ipify.org?format=json').then(res => res.json()).then(data => { userIP = data.ip; }).catch(()=>{});
+
+        // ALGORITMO FISHER-YATES PARA ALEATORIEDAD
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function showNotification(msg) {
+            document.getElementById('notification-msg').textContent = msg;
+            document.getElementById('custom-notification').classList.add('show');
+            setTimeout(() => document.getElementById('custom-notification').classList.remove('show'), 3200);
+        }
+        function hideNotification() { document.getElementById('custom-notification').classList.remove('show'); }
+
+        function resetListaAlumnas() {
+            document.getElementById('container-nombre').classList.add('hidden');
+            document.getElementById('sel-nombre').innerHTML = '';
+        }
+
+        // AUDIO INTELIGENTE (Filtra comandos de MathJax antes de leer)
+        function playAudio(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                let cleanText = text.replace(/\\\(.*?\\\)/g, " expresión matemática ").replace(/<[^>]*>?/gm, ' ').replace(/[.,\/#!$%\^&\*;:{}=\-_`~()¿?¡!"']/g, " ").trim();
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'es-ES';
+                utterance.rate = 1.05;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+        function stopAudio() { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); }
+
+        // BANCO DE PREGUNTAS EXTRAÍDAS DEL PDF: TRIÁNGULOS RECTÁNGULOS (10 preguntas x 2 pts = 20 puntos)
+        const originalQuestions = [
+            {
+                id: 1,
+                type: 'mc',
+                points: 2,
+                q: "Una escalera de 10 m se apoya en una pared. Si la base de la escalera está a 6 m de la pared, ¿a qué altura llega?",
+                options: ["6 m", "7 m", "8 m", "9 m"],
+                answer: 2
+            },
+            {
+                id: 2,
+                type: 'mc',
+                points: 2,
+                q: "Un terreno rectangular mide 9 m de ancho y 12 m de largo. ¿Cuánto mide la diagonal del terreno?",
+                options: ["13 m", "14 m", "15 m", "16 m"],
+                answer: 2
+            },
+            {
+                id: 3,
+                type: 'mc',
+                points: 2,
+                q: "Desde la parte superior de un edificio se observa un punto del suelo situado a 15 m de su base. Si la distancia en línea recta desde la parte superior hasta ese punto es 25 m, ¿cuál es la altura del edificio?",
+                options: ["10 m", "15 m", "20 m", "22 m"],
+                answer: 2
+            },
+            {
+                id: 4,
+                type: 'mc',
+                points: 2,
+                q: "En un triángulo rectángulo, uno de sus ángulos agudos mide \\( 28^{\\circ} \\). ¿Cuánto mide el otro ángulo agudo?",
+                options: ["\\( 52^{\\circ} \\)", "\\( 62^{\\circ} \\)", "\\( 72^{\\circ} \\)", "\\( 82^{\\circ} \\)"],
+                answer: 1
+            },
+            {
+                id: 5,
+                type: 'mc',
+                points: 2,
+                q: "Una estudiante camina 8 m hacia el norte y luego 15 m hacia el este, formando un ángulo recto entre ambos recorridos. ¿Qué distancia en línea recta hay entre el punto de partida y el punto final?",
+                options: ["15 m", "17 m", "19 m", "23 m"],
+                answer: 1
+            },
+            {
+                id: 6,
+                type: 'mc',
+                points: 2,
+                q: "Un poste vertical de 24 m está sujeto al suelo mediante un cable de 25 m, desde la parte superior hasta un punto del suelo. ¿A qué distancia de la base del poste está fijado el cable?",
+                options: ["5 m", "6 m", "7 m", "8 m"],
+                answer: 2
+            },
+            {
+                id: 7,
+                type: 'mc',
+                points: 2,
+                q: "Una estructura triangular tiene lados de 7 cm, 24 cm y 25 cm. ¿Qué afirmación es correcta?",
+                options: ["Es equilátero.", "Es rectángulo.", "Es isósceles.", "Es obtusángulo."],
+                answer: 1
+            },
+            {
+                id: 8,
+                type: 'mc',
+                points: 2,
+                q: "La pantalla de una tableta tiene forma rectangular y mide 20 cm de largo y 15 cm de ancho. ¿Cuánto mide su diagonal?",
+                options: ["20 cm", "24 cm", "25 cm", "30 cm"],
+                answer: 2
+            },
+            {
+                id: 9,
+                type: 'mc',
+                points: 2,
+                q: "Una rampa tiene 13 m de longitud y alcanza una altura vertical de 5 m. ¿Cuánto mide la distancia horizontal que ocupa en el suelo?",
+                options: ["8 m", "10 m", "12 m", "14 m"],
+                answer: 2
+            },
+            {
+                id: 10,
+                type: 'mc',
+                points: 2,
+                q: "Los dos ángulos agudos de un triángulo rectángulo miden \\( x \\) y \\( 2x \\). ¿Cuál es el valor de \\( x \\)?",
+                options: ["\\( 20^{\\circ} \\)", "\\( 30^{\\circ} \\)", "\\( 40^{\\circ} \\)", "\\( 45^{\\circ} \\)"],
+                answer: 1
+            }
+        ];
+
+        let questions = []; 
+        let currentQuestionIndex = 0;
+        let studentData = {};
+        let userAnswers = {};
+        let maxScore = 0;
+
+        function cargarEstudiantes() {
+            const grado = document.getElementById('sel-grado').value;
+            const seccion = document.getElementById('sel-seccion').value;
+            
+            if (!grado || !seccion) return showNotification("Por favor, selecciona tu grado y sección.");
+            
+            document.getElementById('loading-msg').classList.remove('hidden');
+            fetch(`${GOOGLE_SHEETS_URL}?action=getEstudiantes&grado=${grado}&seccion=${seccion}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('loading-msg').classList.add('hidden');
+                    if (data.status === "success" && data.estudiantes.length > 0) {
+                        const sel = document.getElementById('sel-nombre');
+                        sel.innerHTML = '<option value="">Selecciona tu nombre</option>';
+                        data.estudiantes.forEach(e => sel.innerHTML += `<option value="${e}">${e}</option>`);
+                        document.getElementById('container-nombre').classList.remove('hidden');
+                    } else {
+                        showNotification("No se encontraron alumnas registradas.");
+                    }
+                }).catch(() => {
+                    document.getElementById('loading-msg').classList.add('hidden');
+                    showNotification("Error de conexión con la base de datos.");
+                });
+        }
+
+        function iniciarEvaluacion() {
+            const n = document.getElementById('sel-nombre').value;
+            if (!n) return showNotification("Por favor, selecciona tu nombre.");
+            
+            questions = shuffleArray(JSON.parse(JSON.stringify(originalQuestions)));
+            questions.forEach(q => {
+                if (q.type === 'mc' || q.type === 'image_mc') {
+                    const correctText = q.options[q.answer];
+                    q.options = shuffleArray(q.options);
+                    q.answer = q.options.indexOf(correctText);
+                } else if (q.type === 'match') {
+                    q.shuffledRight = shuffleArray(q.pairs.map(p => p.right));
+                } else if (q.type === 'order') {
+                    q.shuffledOrder = shuffleArray(q.correctOrder);
+                }
+            });
+
+            maxScore = questions.reduce((acc, q) => acc + q.points, 0);
+            document.getElementById('total-q-num').textContent = questions.length;
+
+            studentData = { grado: document.getElementById('sel-grado').value, seccion: document.getElementById('sel-seccion').value, nombre: n };
+            document.getElementById('user-display-name').textContent = `${n} (${studentData.grado}.º "${studentData.seccion}")`;
+            
+            document.getElementById('screen-register').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            
+            if (typeof Tone !== 'undefined' && Tone.context.state !== 'running') Tone.start();
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQuestionIndex];
+            document.getElementById('current-q-num').textContent = currentQuestionIndex + 1;
+            document.getElementById('progress-bar').style.width = `${((currentQuestionIndex + 1)/questions.length)*100}%`;
+
+            document.getElementById('btn-prev').disabled = (currentQuestionIndex === 0);
+            if (currentQuestionIndex === questions.length - 1) {
+                document.getElementById('btn-next').classList.add('hidden');
+                document.getElementById('btn-finish').classList.remove('hidden');
+            } else {
+                document.getElementById('btn-next').classList.remove('hidden');
+                document.getElementById('btn-finish').classList.add('hidden');
+            }
+
+            let html = `
+                <div class="mb-4 flex justify-between items-center">
+                    <span class="bg-mathAccent-200 text-mathPrimary-950 text-xs font-black px-3 py-1 rounded-full border border-mathAccent-400">Valor: ${q.points} Pts</span>
+                    <span class="text-xs text-mathPrimary-600 font-semibold">Orden aleatorio activo</span>
+                </div>
+                <div class="flex items-start justify-between gap-4 mb-6">
+                    <h3 class="text-lg md:text-xl font-semibold text-slate-900 flex-1 leading-relaxed">${q.q}</h3>
+                    <button onclick="playAudio('${q.q.replace(/'/g, "\\'")}')" class="flex-shrink-0 bg-mathAccent-200 hover:bg-mathAccent-300 text-mathPrimary-900 p-3 rounded-full transition shadow-sm border border-mathAccent-400" title="Escuchar pregunta">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+            if (q.type === 'mc') {
+                html += `<div class="space-y-3">`;
+                q.options.forEach((opt, idx) => {
+                    const isSel = (userAnswers[q.id] === idx);
+                    html += `<button onclick="selectMC(${q.id}, ${idx})" class="w-full text-left p-4 rounded-xl border-2 font-semibold transition flex items-center justify-between ${isSel ? 'border-mathPrimary-600 bg-mathAccent-100 text-mathPrimary-950 shadow-sm' : 'border-mathPrimary-200 bg-mathPrimary-50/40 hover:bg-mathAccent-50'}">
+                        <span><strong class="text-mathPrimary-800 mr-2">${String.fromCharCode(65 + idx)}.</strong> ${opt}</span>
+                        <div class="w-5 h-5 rounded-full border-2 ${isSel ? 'border-mathPrimary-700 bg-mathPrimary-600' : 'border-mathPrimary-300'} flex-shrink-0 ml-4"></div>
+                    </button>`;
+                });
+                html += `</div>`;
+            } else if (q.type === 'fill') {
+                html += `<input type="text" value="${userAnswers[q.id] || ''}" oninput="userAnswers[${q.id}] = this.value" class="w-full p-4 border-2 border-mathPrimary-300 rounded-xl text-lg font-bold bg-mathPrimary-50/50 focus:border-mathPrimary-600 focus:outline-none" placeholder="Escribe aquí tu respuesta..."/>`;
+            }
+
+            document.getElementById('question-card').innerHTML = html;
+            
+            if (window.MathJax) {
+                MathJax.typesetPromise([document.getElementById('question-card')]).catch(err => console.log(err));
+            }
+        }
+
+        function selectMC(qId, idx) { userAnswers[qId] = idx; renderQuestion(); }
+        
+        function navegarPregunta(dir) { stopAudio(); currentQuestionIndex += dir; renderQuestion(); }
+
+        function confirmarFinalizacion() {
+            stopAudio();
+            
+            let pts = 0, corr = 0, inco = 0, blan = 0;
+            questions.forEach(q => {
+                let ans = userAnswers[q.id];
+                if (ans === undefined || ans === '') { blan++; }
+                else if (q.type === 'mc' || q.type === 'image_mc') { ans === q.answer ? (corr++, pts += q.points) : inco++; }
+                else if (q.type === 'fill') { q.accepted.some(a => a.toLowerCase() === ans.trim().toLowerCase()) ? (corr++, pts += q.points) : inco++; }
+            });
+
+            const notaVigesimal = Math.round((pts / maxScore) * 20);
+            const notaFormateada = notaVigesimal < 10 ? `0${notaVigesimal}` : `${notaVigesimal}`;
+            
+            let letR = 'C', descR = 'En inicio / Reprobado', colorClass = "text-7xl font-black text-rose-600 my-1", badgeClass = "text-sm font-extrabold px-4 py-1 rounded-full bg-rose-100 text-rose-800 mt-1";
+            if (notaVigesimal >= 18) { letR = 'AD'; descR = 'Logro destacado'; colorClass = "text-7xl font-black text-emerald-600 my-1"; badgeClass = "text-sm font-extrabold px-4 py-1 rounded-full bg-emerald-100 text-emerald-800 mt-1"; } 
+            else if (notaVigesimal >= 15) { letR = 'A'; descR = 'Logro esperado / Satisfactorio'; colorClass = "text-7xl font-black text-blue-600 my-1"; badgeClass = "text-sm font-extrabold px-4 py-1 rounded-full bg-blue-100 text-blue-800 mt-1"; } 
+            else if (notaVigesimal >= 11) { letR = 'B'; descR = 'En proceso'; colorClass = "text-7xl font-black text-amber-500 my-1"; badgeClass = "text-sm font-extrabold px-4 py-1 rounded-full bg-amber-100 text-amber-900 mt-1"; }
+
+            document.getElementById('result-student-info').textContent = `Alumna: ${studentData.nombre} — ${studentData.grado}.º año, Sección "${studentData.seccion}"`;
+            
+            const letterEl = document.getElementById('result-letter');
+            letterEl.textContent = letR; letterEl.className = colorClass;
+            const descEl = document.getElementById('result-level-desc');
+            descEl.textContent = descR; descEl.className = badgeClass;
+            
+            document.getElementById('result-points').textContent = `Nota: ${notaFormateada} / 20`;
+            document.getElementById('stat-correct').textContent = corr; document.getElementById('stat-incorrect').textContent = inco; document.getElementById('stat-blank').textContent = blan;
+            
+            document.getElementById('screen-game').classList.add('hidden'); document.getElementById('screen-results').classList.remove('hidden');
+
+            fetch(GOOGLE_SHEETS_URL, { 
+                method: 'POST', mode: 'no-cors', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ ...studentData, correctas: corr, incorrectas: inco, enBlanco: blan, puntaje: notaVigesimal, letra: letR, descripcion: descR, ip: userIP })
+            }).then(() => { document.getElementById('sync-status').innerHTML = "✅ ¡Listo! Tu calificación ha sido registrada correctamente."; })
+              .catch(() => { document.getElementById('sync-status').innerHTML = "⚠️ Evaluación finalizada (verifica tu conexión)."; });
+        }
+    </script>
+</body>
+</html>
